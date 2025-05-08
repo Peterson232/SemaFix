@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">SemaFix</string>
+    <string name="title_activity_register_screen">registerScreen</string>
+    <string name="title_activity_main">MainActivity</string>
+</resources>

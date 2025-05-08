@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "785273067531",
+    "project_id": "semafix-63d0d",
+    "storage_bucket": "semafix-63d0d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:785273067531:android:c7e1ab5874c0c111ad0f0e",
+        "android_client_info": {
+          "package_name": "com.example.semafix"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB0r_wh4ndPlpgBQUlvUZj7iqrZODJ61sA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
