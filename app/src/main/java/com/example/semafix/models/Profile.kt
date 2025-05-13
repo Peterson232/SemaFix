@@ -8,5 +8,8 @@ data class User(
     val county: String = "",
     val constituency: String = "", // You can change to 'district' if needed
     val profileImageUrl: String = "",
-    val about: String = ""
+    val about: String = "",
+    val postCount: Int = 0,
+    val resolvedCount: Int = 0,
+    val bio: String = ""
 )

@@ -1,15 +1,22 @@
 package com.example.semafix.ui.screens.dashboard
 
+import android.view.ViewGroup
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.semafix.data.AuthViewModel
+import com.example.semafix.navigation.Routes
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Article
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.semafix.R
@@ -106,7 +114,8 @@ fun DashboardScreen(navController: NavController) {
                     Spacer(modifier = Modifier.height(32.dp))
                     QuickActionsGrid(navController)
                     Spacer(modifier = Modifier.height(24.dp))
-                    LiveDataSection(recentActivities)
+                    LiveNewsSection(youtubeUrl = "https://www.youtube.com/live/YDvsBbKfLPA?si=eaRxxeM9HDTbaxia")
+
                 }
             }
 
@@ -127,6 +136,7 @@ fun DashboardScreen(navController: NavController) {
 
 @Composable
 private fun UserInfoSection(navController: NavController) {
+    val authViewModel: AuthViewModel = viewModel()
     Card(
         modifier = Modifier
             .padding(16.dp)
@@ -182,6 +192,24 @@ private fun UserInfoSection(navController: NavController) {
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Online", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Button(
+                    onClick = {
+                        authViewModel.logout()
+                        navController.navigate(Routes.Login.route) {
+                            popUpTo(Routes.Dashboard.route) { inclusive = true }
+                        }
+                    },
+                    modifier = Modifier
+                        .height(48.dp)
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                ) {
+                    Text("Log Out")
+                }
             }
         }
     }
@@ -190,9 +218,9 @@ private fun UserInfoSection(navController: NavController) {
 @Composable
 private fun QuickActionsGrid(navController: NavController) {
     val actions = listOf(
-        Triple("Read", Icons.Filled.Article, "news"),
-        Triple("Update", Icons.Filled.Edit, "update_screen"),
-        Triple("Delete", Icons.Filled.Delete, "delete_screen")
+        Triple("Read", Icons.AutoMirrored.Filled.Article, "news"),
+        Triple("Edit", Icons.Filled.Edit, "edit_story/{storyId}"),
+        Triple("Posts", Icons.Filled.List, "profile_screen"),
     )
 
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
@@ -239,45 +267,33 @@ private fun QuickActionsGrid(navController: NavController) {
 }
 
 @Composable
-private fun LiveDataSection(activities: List<String>) {
+private fun LiveNewsSection(youtubeUrl: String) {
     ElevatedCard(
         modifier = Modifier
             .padding(16.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .height(220.dp), // You can adjust height as needed
         shape = RoundedCornerShape(24.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                "Recent Activity",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
-            activities.forEach { activity ->
-                Row(
-                    modifier = Modifier
-                        .padding(vertical = 8.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Filled.CircleNotifications,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-                        tint = Primary
+        AndroidView(
+            factory = { context ->
+                WebView(context).apply {
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
                     )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Text(
-                        activity,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    webViewClient = WebViewClient()
+                    settings.javaScriptEnabled = true
+                    settings.loadWithOverviewMode = true
+                    settings.useWideViewPort = true
+                    loadUrl(youtubeUrl)
                 }
-            }
-        }
+            },
+            update = { it.loadUrl(youtubeUrl) }
+        )
     }
 }
+
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable

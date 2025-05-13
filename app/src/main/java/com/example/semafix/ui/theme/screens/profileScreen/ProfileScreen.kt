@@ -1,151 +1,220 @@
 package com.example.semafix.ui.theme.screens.profileScreen
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.lazy.items
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.unit.dp
+import android.content.Intent
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.example.semafix.data.ProfileViewModel
+import com.example.semafix.data.ProfileViewModelFactory
 import com.example.semafix.models.Story
 import com.example.semafix.models.User
-import com.example.semafix.ui.screens.dashboard.DashboardScreen
+import com.example.semafix.ui.theme.Primary
+import com.example.semafix.ui.theme.Secondary
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel = hiltViewModel()) {
-    val context = LocalContext.current
-    val user by viewModel.user.collectAsState(initial = User())
+fun ProfileScreen(navController: NavController) {
+    val viewModel: ProfileViewModel = viewModel(factory = ProfileViewModelFactory())
+    val user by viewModel.user.collectAsState()
     val userStories by viewModel.userStories.collectAsState()
+    val context = LocalContext.current
     var showDeleteDialog by remember { mutableStateOf(false) }
-    var selectedStoryId by remember { mutableStateOf<String?>(null) }
-    val loading = user == null || userStories.isEmpty()  // Simplified check
+    var storyToDelete by remember { mutableStateOf<String?>(null) }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { viewModel.updateProfilePicture(it.toString()) }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.fetchUserData()
         viewModel.fetchUserStories()
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        if (loading) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-        } else {
-            // Profile Section
-            user?.let { nonNullUser ->
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    if (nonNullUser.profileImageUrl.isNotEmpty()) {
-                        Image(
-                            painter = rememberAsyncImagePainter(nonNullUser.profileImageUrl),
-                            contentDescription = "Profile Image",
-                            modifier = Modifier
-                                .size(120.dp)
-                                .clip(CircleShape)
-                                .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                        )
-                    } else {
-                        Icon(
-                            Icons.Filled.Person,
-                            contentDescription = "Default profile",
-                            modifier = Modifier.size(120.dp)
-                        )
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Profile") },
+                actions = {
+                    IconButton(onClick = {
+                        navController.navigate("manage_account")
+                    }) {
+                        Icon(Icons.Filled.Settings, contentDescription = "Settings")
                     }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(nonNullUser.name, style = MaterialTheme.typography.headlineSmall)
-                    Text("@${nonNullUser.username}", style = MaterialTheme.typography.bodyMedium)
-                    Text(nonNullUser.phoneNumber, style = MaterialTheme.typography.bodyMedium)
-                    Text(
-                        "${nonNullUser.county}, ${nonNullUser.constituency}",
-                        style = MaterialTheme.typography.bodyMedium
+                    IconButton(onClick = {
+                        val sendIntent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            putExtra(Intent.EXTRA_TEXT, "Check out my profile: ${user?.username}")
+                            type = "text/plain"
+                        }
+                        context.startActivity(Intent.createChooser(sendIntent, null))
+                    }) {
+                        Icon(Icons.Filled.Share, contentDescription = "Share Profile")
+                    }
+                }
+            )
+        },
+        bottomBar = {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                modifier = Modifier.clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+            ) {
+                listOf("Home", "Create", "News", "Profile").forEachIndexed { index, title ->
+                    NavigationBarItem(
+                        selected = title == "Profile",
+                        onClick = {
+                            when (index) {
+                                0 -> navController.navigate("dashboard")
+                                1 -> navController.navigate("create_screen")
+                                2 -> navController.navigate("news")
+                                3 -> navController.navigate("profile_screen")
+                            }
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = when (index) {
+                                    0 -> Icons.Filled.Home
+                                    1 -> Icons.Filled.AddCircle
+                                    2 -> Icons.Filled.Article
+                                    3 -> Icons.Filled.Person
+                                    else -> Icons.Filled.Person
+                                },
+                                contentDescription = title
+                            )
+                        },
+                        label = { Text(title) }
                     )
-                    Text(nonNullUser.about, style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
+    ) { padding ->
+        val resolvedCount = userStories.count { it.status == "Resolved" }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(padding)
+                .padding(horizontal = 16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(CircleShape)
+                        .background(Color.Gray)
+                        .clickable {
+                            imagePickerLauncher.launch("image/*")
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    user?.profileImageUrl?.let {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(it)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize().clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    } ?: Icon(Icons.Default.Person, contentDescription = null)
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Column(modifier = Modifier.padding(start = 16.dp)) {
+                    Text(user?.username ?: "", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    Text(user?.name ?: "", fontSize = 16.sp, color = Color.Gray)
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
 
-                // Stories Section
-                Text("Your Stories", fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(8.dp))
+            val likedCount = userStories.sumOf { it.likedBy?.size ?: 0 }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+                StatItem(label = "Posts", value = userStories.size.toString())
+                StatItem(label = "Likes", value = likedCount.toString())
+                StatItem(label = "Resolved", value = resolvedCount.toString())
+            }
 
-                if (userStories.isEmpty()) {
-                    Text("No stories available")
-                } else {
-                    LazyColumn {
-                        items(userStories) { story ->
-                            EditableStoryItem(
-                                story = story,
-                                onEditClick = { navController.navigate("edit_story/${story.id}") },
-                                onDeleteClick = {
-                                    selectedStoryId = story.id
-                                    showDeleteDialog = true
-                                }
-                            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            user?.let {
+                Text("Phone: ${it.phoneNumber}")
+                Text("Location: ${it.county}, ${it.constituency}")
+                Text("About: ${it.about}")
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text("Your Stories", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (userStories.isEmpty()) {
+                Text("No stories yet!", color = Color.Gray)
+            } else {
+                userStories.forEach { story ->
+                    StoryCard(
+                        story = story,
+                        onEdit = { navController.navigate("edit_story/${story.id}") },
+                        onDelete = {
+                            storyToDelete = story.id
+                            showDeleteDialog = true
                         }
-                    }
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
 
-        // Delete Confirmation Dialog
-        if (showDeleteDialog) {
+        if (showDeleteDialog && storyToDelete != null) {
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
-                title = { Text("Delete Story?") },
-                text = { Text("This action cannot be undone") },
+                title = { Text("Delete Story") },
+                text = { Text("Are you sure you want to delete this story?") },
                 confirmButton = {
                     TextButton(onClick = {
-                        selectedStoryId?.let { viewModel.deleteStory(it) }
+                        viewModel.deleteStory(storyToDelete!!)
                         showDeleteDialog = false
                     }) {
-                        Text("Delete")
+                        Text("Delete", color = MaterialTheme.colorScheme.error)
                     }
                 },
                 dismissButton = {
@@ -157,40 +226,17 @@ fun ProfileScreen(navController: NavController, viewModel: ProfileViewModel = hi
         }
     }
 }
-@Composable
-fun EditableStoryItem(
-    story: Story,
-    onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit
-) {
-    Column(modifier = Modifier.padding(8.dp)) {
-        Text(story.title, fontWeight = FontWeight.Bold)
-        Text(story.description)
-        if (story.imageUrl.isNotEmpty()) {
-            Image(
-                painter = rememberAsyncImagePainter(story.imageUrl),
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(8.dp))
-            )
-        }
-        Spacer(modifier = Modifier.height(8.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Button(onClick = onEditClick) {
-                Text("Edit")
-            }
-            Button(onClick = onDeleteClick) {
-                Text("Delete")
-            }
-        }
+@Composable
+fun StatItem(label: String, value: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(value, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+        Text(label, color = Color.Gray)
     }
 }
+
+
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun ProfileScreenPreview() {

@@ -10,9 +10,12 @@ import com.example.semafix.ui.screens.dashboard.DashboardScreen
 import com.example.semafix.ui.theme.screens.createScreen.CreateStoryScreen
 import com.example.semafix.ui.theme.screens.login.LoginScreen
 import com.example.semafix.ui.theme.screens.newsScreen.NewsScreen
+import com.example.semafix.ui.theme.screens.profileScreen.ChangePasswordScreen
+import com.example.semafix.ui.theme.screens.profileScreen.EditProfileScreen
 import com.example.semafix.ui.theme.screens.profileScreen.EditStoryScreen
 import com.example.semafix.ui.theme.screens.profileScreen.ProfileScreen
 import com.example.semafix.ui.theme.screens.register.RegisterScreen
+import com.example.semafix.ui.theme.screens.settingsScreen.SettingsScreen
 
 @Composable
 fun AppNavHost(
@@ -49,7 +52,16 @@ fun AppNavHost(
             val storyId = backStackEntry.arguments?.getString("storyId") ?: return@composable
             EditStoryScreen(navController = navController, storyId = storyId)
         }
+        composable("manage_account") {
+            SettingsScreen(navController)
+        }
+        composable("edit_profile") {
+            EditProfileScreen(navController)
+        }
 
+        composable("change_password") {
+            ChangePasswordScreen(navController)
+        }
 
     }
     }

@@ -2,9 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("kotlin-kapt")
     alias(libs.plugins.google.gms.google.services)
-    alias(libs.plugins.dagger.hilt.android)
+
 }
 
 android {
@@ -28,6 +27,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -65,19 +65,17 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation("androidx.navigation:navigation-compose:2.8.4")
     implementation("io.coil-kt:coil-compose:2.4.0")
-    implementation("androidx.navigation:navigation-compose:2.7.5")
     implementation("androidx.compose.ui:ui:1.5.4")
     implementation("androidx.compose.material3:material3:1.3.2")
-    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
+    implementation ("androidx.compose.material3:material3-window-size-class:1.2.0")
 
-    implementation("com.google.dagger:hilt-android:2.48")
-    kapt("com.google.dagger:hilt-compiler:2.48")
 
-    implementation("com.google.firebase:firebase-auth-ktx:22.3.1")
     implementation("com.google.firebase:firebase-firestore-ktx:24.10.1")
-
     implementation("com.google.firebase:firebase-auth:22.3.1")
     implementation("com.google.firebase:firebase-firestore:24.10.1")
+    implementation ("com.google.android.gms:play-services-auth:20.7.0")
+
 
     implementation("androidx.compose.ui:ui-tooling-preview:1.5.4")
     debugImplementation("androidx.compose.ui:ui-tooling:1.5.4")
@@ -85,12 +83,11 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.1")
+    implementation("com.squareup.okhttp3:okhttp:4.9.1")
 
-    implementation(platform("androidx.compose:compose-bom:2023.10.01"))
+    implementation(libs.androidx.compose.bom.v20231001)
     implementation("androidx.compose.material:material-icons-core")
     implementation("androidx.compose.material:material-icons-extended")
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.4")
-    implementation("com.squareup:javapoet:1.13.0")
-
 }
 

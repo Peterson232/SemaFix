@@ -1,7 +1,7 @@
-package com.example.semafix
-
-import android.app.Application
-import dagger.hilt.android.HiltAndroidApp
-
-@HiltAndroidApp
-class MyApplication : Application()
+//package com.example.semafix
+//
+//import android.app.Application
+//import dagger.hilt.android.HiltAndroidApp
+//
+//@HiltAndroidApp
+////class MyApplication : Application()
